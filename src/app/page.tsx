@@ -189,8 +189,8 @@ export default function Dashboard() {
         <div className="flex flex-col items-center justify-center gap-4 bg-white p-8 md:p-10 rounded-xl shadow-lg border-t-4 border-[#005FAC] w-full max-w-sm">
           <Loader2 className="animate-spin text-[#005FAC]" size={44} />
           <div className="text-center">
-            <h3 className="font-bold text-lg text-slate-800">Realisasi TKD</h3>
-            <p className="text-sm text-slate-500 mt-1">Menyiapkan pangkalan data...</p>
+            <h3 className="font-bold text-lg text-slate-800">Realisasi Transfer ke Daerah (SiFRANS)</h3>
+            <p className="text-sm text-slate-500 mt-1">KPPN LHOKSEUMAWE...</p>
           </div>
         </div>
       </div>
