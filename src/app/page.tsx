@@ -2,14 +2,15 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-// Impor Image bawaan Next.js untuk optimasi gambar (Mengatasi warning no-img-element)
 import Image from "next/image";
 import { 
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, BarChart, Bar 
 } from "recharts";
-// Menghapus impor 'Wallet' karena tidak dipakai lagi (Mengatasi warning unused-vars)
-import { LayoutDashboard, Map as MapIcon, TrendingUp, Loader2, Search, Building2, Calendar, FileText, ChevronRight } from "lucide-react";
+import { 
+  LayoutDashboard, Map as MapIcon, TrendingUp, Loader2, Search, 
+  Building2, Calendar, FileText, ChevronRight, Menu, X 
+} from "lucide-react";
 
 interface SheetRow {
   wilayah: string;
@@ -21,7 +22,6 @@ interface SheetRow {
   bulanan: Record<string, number>;
 }
 
-// Menghapus konstanta KEMENKEU_NAVY yang tidak dipakai (Mengatasi warning unused-vars)
 const KEMENKEU_BLUE = "#005FAC";
 const KEMENKEU_GOLD = "#FFD700";
 const COLORS = [KEMENKEU_BLUE, KEMENKEU_GOLD, '#ced4da', '#8ecae6', '#caf0f8', '#f8edeb', '#ecf39e', '#03045e'];
@@ -36,6 +36,24 @@ export default function Dashboard() {
   
   const [rawData, setRawData] = useState<SheetRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // STATE BARU: Mengontrol menu samping (Desktop & Mobile)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // Efek pintar: Otomatis menutup menu kalau dibuka dari HP
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsSidebarOpen(false); // Tutup otomatis di HP
+      } else {
+        setIsSidebarOpen(true);  // Buka otomatis di Laptop
+      }
+    };
+
+    handleResize(); // Jalankan saat pertama kali website dimuat
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -125,51 +143,27 @@ export default function Dashboard() {
 
   const yearOptions = ["Semua Tahun", ...Array.from(new Set(rawData.map(d => d.tahun))).sort().reverse()];
 
-if (isLoading) {
+  if (isLoading) {
     return (
       <div className="flex h-screen flex-col items-center justify-center bg-[#F0F2F5] text-[#002B5B] px-4">
-        
-        {/* HEADER LOGO & TEKS (Sejajar ke Samping / Horizontal) */}
-        <div className="flex items-center gap-4 md:gap-6 mb-12">
-          
-          {/* 1. Logo Emblem */}
-          <Image 
-            src="/logo/logo-djpb-lhokseumawe.png" // Sesuaikan nama filenya jika berbeda
-            alt="Logo Kemenkeu" 
-            width={90} 
-            height={90} 
-            className="w-auto h-16 md:h-20 object-contain drop-shadow-sm"
-            priority
-          />
-          
-          {/* 2. Garis Pemisah Vertikal (Vertical Divider) */}
-          <div className="h-10 md:h-16 w-0.5 bg-slate-300 rounded-full"></div>
-
-          {/* 3. Teks Instansi di Kanan Logo */}
-          <div className="flex flex-col text-left">
-            <h1 className="text-xl md:text-2xl text-[#003366] tracking-wide" style={{ fontFamily: 'Arial, sans-serif' }}>
-              DITJEN PERBENDAHARAAN KEMENKEU RI
-            </h1>
-            <div className="mt-1">
-              <h2 className="font-extrabold text-sm md:text-base text-[#002B5B] tracking-widest uppercase">
-                Lhokseumawe
-              </h2>
-              {/* Garis Kuning Khas Kemenkeu di Bawah Teks Lhokseumawe */}
+        <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 mb-8 md:mb-12">
+          <Image src="/logo/logo-djpb-lhokseumawe.png" alt="Logo Kemenkeu" width={90} height={90} className="w-auto h-16 md:h-20 object-contain drop-shadow-sm" priority />
+          <div className="h-0.5 w-16 md:h-16 md:w-0.5 bg-slate-300 rounded-full my-2 md:my-0"></div>
+          <div className="flex flex-col text-center md:text-left">
+            <h1 className="text-lg md:text-2xl font-bold text-[#005FAC] tracking-wide" style={{ fontFamily: 'Arial, sans-serif' }}>DITJEN PERBENDAHARAAN KEMENKEU RI</h1>
+            <div className="mt-1 flex flex-col items-center md:items-start">
+              <h2 className="font-extrabold text-sm md:text-base text-[#002B5B] tracking-widest uppercase">Lhokseumawe</h2>
               <div className="h-1 w-16 bg-[#FFD700] mt-1.5 rounded-sm"></div>
             </div>
           </div>
-
         </div>
-
-        {/* KOTAK LOADING UTAMA */}
         <div className="flex flex-col items-center justify-center gap-4 bg-white p-8 md:p-10 rounded-xl shadow-lg border-t-4 border-[#005FAC] w-full max-w-sm">
           <Loader2 className="animate-spin text-[#005FAC]" size={44} />
           <div className="text-center">
-            <h3 className="font-bold text-lg text-slate-800">Realisasi Transfer ke Daerah (SiFRANS)</h3>
-            <p className="text-sm text-slate-500 mt-1">KPPN LHOKSEUMAWE</p>
+            <h3 className="font-bold text-lg text-slate-800">Realisasi TKD</h3>
+            <p className="text-sm text-slate-500 mt-1">Menyiapkan pangkalan data...</p>
           </div>
         </div>
-
       </div>
     );
   }
@@ -186,20 +180,34 @@ if (isLoading) {
   return (
     <div className="flex h-screen bg-[#F0F2F5] text-slate-800 font-sans overflow-hidden">
       
-      {/* SIDEBAR */}
-      <aside className="w-64 bg-[#002B5B] text-white flex flex-col justify-between shadow-2xl z-20">
+      {/* OVERLAY HITAM UNTUK HP (Muncul saat menu terbuka) */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* SIDEBAR (Animasi geser yang super mulus di Desktop & Mobile) */}
+      <aside className={`fixed lg:relative inset-y-0 left-0 z-50 w-64 shrink-0 bg-[#002B5B] text-white flex flex-col justify-between shadow-2xl transition-all duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0 ml-0" : "-translate-x-full lg:-ml-64"}`}>
         <div>
-          <div className="p-5 border-b border-blue-900/50 bg-[#001D3D] flex items-center gap-3">
-            <div className="bg-white p-2 rounded flex items-center justify-center">
-              <Building2 size={24} className="text-[#002B5B]" />
+          <div className="p-5 border-b border-blue-900/50 bg-[#001D3D] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-white p-2 rounded flex items-center justify-center">
+                <Building2 size={24} className="text-[#002B5B]" />
+              </div>
+              <div>
+                <h1 className="font-extrabold text-sm tracking-widest text-white leading-tight">KPPN 010</h1>
+                <p className="text-[10px] font-medium text-[#FFD700] uppercase tracking-wider">Lhokseumawe</p>
+              </div>
             </div>
-            <div>
-              <h1 className="font-extrabold text-sm tracking-widest text-white leading-tight">KPPN 089</h1>
-              <p className="text-[10px] font-medium text-[#FFD700] uppercase tracking-wider">Lhokseumawe</p>
-            </div>
+            {/* Tombol Tutup (X) khusus di HP */}
+            <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-blue-200 hover:text-white">
+              <X size={24} />
+            </button>
           </div>
           
-          <div className="p-4">
+          <div className="p-4 overflow-y-auto">
             <p className="text-[11px] font-bold text-blue-300/70 mb-3 px-2 uppercase tracking-widest">Wilayah Kerja</p>
             <nav className="space-y-1 mb-8">
               {[
@@ -210,7 +218,10 @@ if (isLoading) {
               ].map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setActiveRegion(item.id)}
+                  onClick={() => {
+                    setActiveRegion(item.id);
+                    if (window.innerWidth < 1024) setIsSidebarOpen(false); // Tutup menu di HP setelah diklik
+                  }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-all text-sm font-medium ${
                     activeRegion === item.id 
                       ? "bg-[#005FAC] text-white border-l-4 border-[#FFD700] shadow-md" 
@@ -244,79 +255,79 @@ if (isLoading) {
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      {/* MAIN CONTENT AREA */}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden min-w-0 transition-all duration-300 ease-in-out">
         
         {/* TOP HEADER */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-sm z-10">
-          <div className="flex items-center text-sm font-medium text-slate-500">
-            <span className="text-[#002B5B] font-bold">Modul TKD</span>
-            <ChevronRight size={16} className="mx-1 opacity-50"/>
-            <span>Realisasi</span>
-            <ChevronRight size={16} className="mx-1 opacity-50"/>
-            <span className="text-slate-800">{regionLabel}</span>
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 shadow-sm z-10 shrink-0">
+          <div className="flex items-center gap-3">
+            {/* Tombol Hamburger SEKARANG SELALU MUNCUL DI HP & LAPTOP */}
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 text-slate-600 hover:bg-slate-100 rounded-md transition-colors shrink-0"
+              title="Toggle Menu"
+            >
+              <Menu size={24} />
+            </button>
+            
+            <div className="hidden sm:flex items-center text-xs md:text-sm font-medium text-slate-500 truncate">
+              <span className="text-[#002B5B] font-bold whitespace-nowrap">Modul TKD</span>
+              <ChevronRight size={16} className="mx-1 opacity-50 shrink-0"/>
+              <span className="whitespace-nowrap">Realisasi</span>
+              <ChevronRight size={16} className="mx-1 opacity-50 shrink-0"/>
+              <span className="text-slate-800 truncate max-w-30 md:max-w-none">{regionLabel}</span>
+            </div>
+            {/* Judul singkat untuk layar HP super kecil */}
+            <span className="sm:hidden text-[#002B5B] font-bold text-sm truncate ml-1">Realisasi TKD</span>
           </div>
           
-          <div className="flex items-center gap-4 border-l pl-6">
-            {/* Perbaikan: Menggunakan komponen Image dari Next.js */}
-            <Image 
-               src="/logo/INTRESS.png" 
-               alt="INTRESS" 
-               width={120} 
-               height={24} 
-               className="h-6 w-auto object-contain" 
-            />
-            <Image 
-               src="/logo/DJPb.png" 
-               alt="DJPb" 
-               width={120} 
-               height={32} 
-               className="h-8 w-auto object-contain" 
-            />
+          <div className="flex items-center gap-2 md:gap-4 pl-2 md:pl-6">
+            <Image src="/logo/INTRESS.png" alt="INTRESS" width={100} height={20} className="h-4 md:h-6 w-auto object-contain hidden sm:block" />
+            <Image src="/logo/DJPb.png" alt="DJPb" width={100} height={28} className="h-6 md:h-8 w-auto object-contain" />
           </div>
         </header>
 
         {/* SCROLLABLE CONTENT */}
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 bg-[#F0F2F5] p-8">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-300 bg-[#F0F2F5] p-4 lg:p-8">
           
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-[#002B5B] tracking-tight uppercase">Monitoring Penyaluran Dana Transfer</h2>
-            <p className="text-slate-600 text-sm mt-1">{regionLabel} • {displayYearText}</p>
+            <h2 className="text-xl md:text-2xl font-bold text-[#002B5B] tracking-tight uppercase leading-tight">Monitoring Penyaluran Dana Transfer</h2>
+            <p className="text-slate-600 text-xs md:text-sm mt-1">{regionLabel} • {displayYearText}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white p-5 rounded border border-slate-200 shadow-sm border-l-4 border-l-[#005FAC]">
-              <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total Pagu Anggaran</p>
-              <h3 className="text-2xl font-black text-slate-800">{formatRupiah(totalAnggaran)}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+            <div className="bg-white p-4 md:p-5 rounded border border-slate-200 shadow-sm border-l-4 border-l-[#005FAC]">
+              <p className="text-slate-500 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-1">Total Pagu Anggaran</p>
+              <h3 className="text-xl md:text-2xl font-black text-slate-800 truncate">{formatRupiah(totalAnggaran)}</h3>
             </div>
             
-            <div className="bg-white p-5 rounded border border-slate-200 shadow-sm border-l-4 border-l-[#FFD700]">
-              <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Realisasi S.D. Saat Ini</p>
-              <h3 className="text-2xl font-black text-[#005FAC]">{formatRupiah(totalRealisasi)}</h3>
+            <div className="bg-white p-4 md:p-5 rounded border border-slate-200 shadow-sm border-l-4 border-l-[#FFD700]">
+              <p className="text-slate-500 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-1">Realisasi S.D. Saat Ini</p>
+              <h3 className="text-xl md:text-2xl font-black text-[#005FAC] truncate">{formatRupiah(totalRealisasi)}</h3>
             </div>
             
-            <div className="bg-[#002B5B] p-5 rounded shadow-sm relative overflow-hidden">
-              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mb-1">Persentase Penyerapan</p>
-              <h3 className="text-3xl font-black text-white flex items-end gap-1">
-                {persentaseTotal} <span className="text-lg font-bold text-[#FFD700] mb-1">%</span>
+            <div className="bg-[#002B5B] p-4 md:p-5 rounded shadow-sm relative overflow-hidden">
+              <p className="text-blue-200 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-1">Persentase Penyerapan</p>
+              <h3 className="text-2xl md:text-3xl font-black text-white flex items-end gap-1">
+                {persentaseTotal} <span className="text-base md:text-lg font-bold text-[#FFD700] mb-0.5 md:mb-1">%</span>
               </h3>
-              <div className="w-full bg-blue-900 rounded-none h-1.5 mt-3">
+              <div className="w-full bg-blue-900 rounded-none h-1.5 mt-2 md:mt-3">
                 <div className="bg-[#FFD700] h-1.5 rounded-none" style={{ width: `${persentaseTotal}%` }}></div>
               </div>
             </div>
           </div>
 
-          {/* TABS */}
-          <div className="bg-white border-b border-slate-200 mb-6 flex px-2 pt-2">
+          {/* TABS (Bisa di-scroll menyamping di HP) */}
+          <div className="bg-white border-b border-slate-200 mb-6 flex overflow-x-auto hide-scrollbar pt-2">
             {[
-              { id: "program", label: "Program Pengelolaan", icon: LayoutDashboard },
-              { id: "belanja", label: "Rincian Belanja", icon: FileText },
-              { id: "tren", label: "Grafik Bulanan", icon: TrendingUp },
+              { id: "program", label: "Program", icon: LayoutDashboard },
+              { id: "belanja", label: "Rincian", icon: FileText },
+              { id: "tren", label: "Tren", icon: TrendingUp },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-6 py-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 ${
+                className={`flex items-center gap-1.5 md:gap-2 px-4 md:px-6 py-3 text-xs md:text-sm font-bold uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
                   activeTab === tab.id 
                     ? "border-[#005FAC] text-[#005FAC] bg-blue-50/50" 
                     : "border-transparent text-slate-500 hover:text-[#002B5B] hover:bg-slate-50"
@@ -332,16 +343,16 @@ if (isLoading) {
           {activeTab === "program" && (
             <div className="space-y-6">
               {activeYear === "Semua Tahun" && (
-                <div className="bg-white p-6 rounded border border-slate-200 shadow-sm">
-                  <h3 className="font-bold text-[#002B5B] uppercase text-sm tracking-wider mb-6 border-b pb-2">Perbandingan Realisasi Antar Tahun</h3>
-                  <div className="h-64">
+                <div className="bg-white p-4 md:p-6 rounded border border-slate-200 shadow-sm overflow-hidden">
+                  <h3 className="font-bold text-[#002B5B] uppercase text-xs md:text-sm tracking-wider mb-4 md:mb-6 border-b pb-2">Perbandingan Realisasi Antar Tahun</h3>
+                  <div className="h-48 md:h-64 -ml-4 md:ml-0">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartDataYearly}>
+                      <BarChart data={chartDataYearly} margin={{ left: -15, right: 10 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                        <XAxis dataKey="tahun" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                        <YAxis tickFormatter={(val) => `Rp${val/1000000000}M`} axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}}/>
+                        <XAxis dataKey="tahun" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} />
+                        <YAxis tickFormatter={(val) => `${val/1000000000}M`} axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}}/>
                         <RechartsTooltip formatter={(value) => formatRupiah(value as number)} cursor={{fill: '#f8fafc'}} />
-                        <Bar dataKey="realisasi" fill="#005FAC" radius={[2, 2, 0, 0]} barSize={50} />
+                        <Bar dataKey="realisasi" fill="#005FAC" radius={[2, 2, 0, 0]} maxBarSize={50} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -349,44 +360,44 @@ if (isLoading) {
               )}
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div className="bg-white p-6 rounded border border-slate-200 shadow-sm lg:col-span-4">
-                  <h3 className="font-bold text-[#002B5B] uppercase text-sm tracking-wider mb-6 border-b pb-2">Komposisi Pagu</h3>
-                  <div className="h-72">
+                <div className="bg-white p-4 md:p-6 rounded border border-slate-200 shadow-sm lg:col-span-4">
+                  <h3 className="font-bold text-[#002B5B] uppercase text-xs md:text-sm tracking-wider mb-4 md:mb-6 border-b pb-2">Komposisi Pagu</h3>
+                  <div className="h-56 md:h-72">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={chartDataProgram} innerRadius={70} outerRadius={100} paddingAngle={2} dataKey="anggaran">
+                        <Pie data={chartDataProgram} innerRadius="60%" outerRadius="90%" paddingAngle={2} dataKey="anggaran">
                           {chartDataProgram.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
                         <RechartsTooltip formatter={(value) => formatRupiah(value as number)} />
-                        <Legend verticalAlign="bottom" wrapperStyle={{ fontSize: '8px' }}/>
+                        <Legend verticalAlign="bottom" wrapperStyle={{ fontSize: '10px' }}/>
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
 
-                <div className="bg-white p-0 rounded border border-slate-200 shadow-sm lg:col-span-8 overflow-hidden flex flex-col">
-                  <div className="p-4 border-b border-slate-200 bg-[#F8FAFC]">
-                    <h3 className="font-bold text-[#002B5B] uppercase text-sm tracking-wider">Tabel Rincian Program</h3>
+                <div className="bg-white p-0 rounded border border-slate-200 shadow-sm lg:col-span-8 overflow-hidden flex flex-col w-full">
+                  <div className="p-3 md:p-4 border-b border-slate-200 bg-[#F8FAFC]">
+                    <h3 className="font-bold text-[#002B5B] uppercase text-xs md:text-sm tracking-wider">Tabel Rincian Program</h3>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm whitespace-nowrap">
-                      <thead className="bg-[#F1F5F9] text-slate-600 font-bold uppercase text-xs border-b border-slate-300">
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left text-xs md:text-sm whitespace-nowrap min-w-150">
+                      <thead className="bg-[#F1F5F9] text-slate-600 font-bold uppercase text-[10px] md:text-xs border-b border-slate-300">
                         <tr>
-                          <th className="px-5 py-3">Uraian Program</th>
-                          <th className="px-5 py-3 text-right">Pagu Anggaran</th>
-                          <th className="px-5 py-3 text-right">Realisasi</th>
-                          <th className="px-5 py-3 text-center">%</th>
+                          <th className="px-3 md:px-5 py-2 md:py-3">Uraian Program</th>
+                          <th className="px-3 md:px-5 py-2 md:py-3 text-right">Pagu Anggaran</th>
+                          <th className="px-3 md:px-5 py-2 md:py-3 text-right">Realisasi</th>
+                          <th className="px-3 md:px-5 py-2 md:py-3 text-center">%</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {chartDataProgram.map((item, index) => (
                           <tr key={index} className="hover:bg-blue-50/50 transition-colors">
-                            <td className="px-5 py-3 font-semibold text-[#002B5B]">{item.name}</td>
-                            <td className="px-5 py-3 text-right font-mono text-slate-700">{formatRupiah(item.anggaran)}</td>
-                            <td className="px-5 py-3 text-right font-mono text-slate-700">{formatRupiah(item.realisasi)}</td>
-                            <td className="px-5 py-3 text-center font-bold text-[#005FAC]">
+                            <td className="px-3 md:px-5 py-2 md:py-3 font-semibold text-[#002B5B] whitespace-normal min-w-50">{item.name}</td>
+                            <td className="px-3 md:px-5 py-2 md:py-3 text-right font-mono text-slate-700">{formatRupiah(item.anggaran)}</td>
+                            <td className="px-3 md:px-5 py-2 md:py-3 text-right font-mono text-slate-700">{formatRupiah(item.realisasi)}</td>
+                            <td className="px-3 md:px-5 py-2 md:py-3 text-center font-bold text-[#005FAC]">
                               {item.anggaran > 0 ? ((item.realisasi / item.anggaran) * 100).toFixed(2) : 0}%
                             </td>
                           </tr>
@@ -401,29 +412,29 @@ if (isLoading) {
 
           {/* TAB 2: JENIS BELANJA */}
           {activeTab === "belanja" && (
-            <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-5 border-b border-slate-200 bg-[#F8FAFC] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h3 className="font-bold text-[#002B5B] uppercase text-sm tracking-wider flex items-center gap-2">
-                  <Search size={16} className="text-[#005FAC]"/> Filter Program Pengelolaan
+            <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden w-full">
+              <div className="p-4 md:p-5 border-b border-slate-200 bg-[#F8FAFC] flex flex-col gap-3">
+                <h3 className="font-bold text-[#002B5B] uppercase text-xs md:text-sm tracking-wider flex items-center gap-2">
+                  <Search size={16} className="text-[#005FAC] shrink-0"/> Filter Program Pengelolaan
                 </h3>
                 <select 
                   value={programToFilter}
                   onChange={(e) => setSelectedProgramFilter(e.target.value)}
-                  className="px-4 py-2 border border-slate-300 rounded bg-white text-sm font-bold text-[#002B5B] outline-none focus:border-[#005FAC] focus:ring-1 focus:ring-[#005FAC]"
+                  className="w-full px-3 py-2 border border-slate-300 rounded bg-white text-xs md:text-sm font-bold text-[#002B5B] outline-none focus:border-[#005FAC] focus:ring-1 focus:ring-[#005FAC]"
                 >
                   {uniquePrograms.map(p => <option key={p as string} value={p as string}>{p as string}</option>)}
                 </select>
               </div>
 
-              <div className="p-0 overflow-x-auto">
-                <table className="w-full text-left text-sm whitespace-nowrap">
-                  <thead className="bg-[#F1F5F9] text-slate-600 font-bold uppercase text-xs border-b border-slate-300">
+              <div className="p-0 overflow-x-auto w-full">
+                <table className="w-full text-left text-xs md:text-sm whitespace-nowrap min-w-175">
+                  <thead className="bg-[#F1F5F9] text-slate-600 font-bold uppercase text-[10px] md:text-xs border-b border-slate-300">
                     <tr>
-                      {activeYear === "Semua Tahun" && <th className="px-5 py-3">Tahun</th>}
-                      <th className="px-5 py-3">Jenis Belanja (Akun)</th>
-                      <th className="px-5 py-3 text-right">Pagu Anggaran</th>
-                      <th className="px-5 py-3 text-right">Realisasi</th>
-                      <th className="px-5 py-3 text-center">%</th>
+                      {activeYear === "Semua Tahun" && <th className="px-3 md:px-5 py-2 md:py-3">Tahun</th>}
+                      <th className="px-3 md:px-5 py-2 md:py-3">Jenis Belanja (Akun)</th>
+                      <th className="px-3 md:px-5 py-2 md:py-3 text-right">Pagu Anggaran</th>
+                      <th className="px-3 md:px-5 py-2 md:py-3 text-right">Realisasi</th>
+                      <th className="px-3 md:px-5 py-2 md:py-3 text-center">%</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -434,14 +445,14 @@ if (isLoading) {
                       const pct = item.anggaran > 0 ? ((item.realisasi / item.anggaran) * 100).toFixed(2) : 0;
                       return (
                         <tr key={index} className={`hover:bg-blue-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
-                          {activeYear === "Semua Tahun" && <td className="px-5 py-3 font-mono text-slate-500">{item.tahun}</td>}
-                          <td className="px-5 py-3 font-medium text-[#002B5B]">{item.nama}</td>
-                          <td className="px-5 py-3 text-right font-mono text-slate-700">{formatRupiah(item.anggaran)}</td>
-                          <td className="px-5 py-3 text-right font-mono text-slate-700">{formatRupiah(item.realisasi)}</td>
-                          <td className="px-5 py-3">
+                          {activeYear === "Semua Tahun" && <td className="px-3 md:px-5 py-2 md:py-3 font-mono text-slate-500">{item.tahun}</td>}
+                          <td className="px-3 md:px-5 py-2 md:py-3 font-medium text-[#002B5B]">{item.nama}</td>
+                          <td className="px-3 md:px-5 py-2 md:py-3 text-right font-mono text-slate-700">{formatRupiah(item.anggaran)}</td>
+                          <td className="px-3 md:px-5 py-2 md:py-3 text-right font-mono text-slate-700">{formatRupiah(item.realisasi)}</td>
+                          <td className="px-3 md:px-5 py-2 md:py-3">
                             <div className="flex items-center gap-2 justify-end">
-                              <span className="font-bold text-[#005FAC] w-12 text-right">{pct}%</span>
-                              <div className="w-16 bg-slate-200 h-1.5 rounded-none hidden md:block">
+                              <span className="font-bold text-[#005FAC] w-10 md:w-12 text-right">{pct}%</span>
+                              <div className="w-12 md:w-16 bg-slate-200 h-1.5 rounded-none hidden sm:block">
                                 <div className="bg-[#005FAC] h-1.5 rounded-none" style={{ width: `${pct}%` }}></div>
                               </div>
                             </div>
@@ -457,29 +468,28 @@ if (isLoading) {
 
           {/* TAB 3: TREN BULANAN */}
           {activeTab === "tren" && (
-            <div className="bg-white p-6 rounded border border-slate-200 shadow-sm">
+            <div className="bg-white p-4 md:p-6 rounded border border-slate-200 shadow-sm overflow-hidden">
               {activeYear === "Semua Tahun" ? (
-                <div className="bg-orange-50 text-orange-800 p-5 rounded border-l-4 border-orange-500 flex flex-col items-center justify-center text-center py-10">
-                  <Calendar size={40} className="text-orange-400 mb-4 opacity-50"/>
-                  <h4 className="font-bold text-lg mb-1">Pilih Tahun Anggaran</h4>
-                  <p className="text-sm">Grafik pergerakan bulanan hanya dapat ditampilkan untuk satu tahun anggaran spesifik. <br/>Silakan ubah filter tahun di menu samping kiri.</p>
+                <div className="bg-orange-50 text-orange-800 p-4 md:p-5 rounded border-l-4 border-orange-500 flex flex-col items-center justify-center text-center py-8 md:py-10">
+                  <Calendar size={36} className="text-orange-400 mb-3 opacity-50"/>
+                  <h4 className="font-bold text-base md:text-lg mb-1">Pilih Tahun Anggaran</h4>
+                  <p className="text-xs md:text-sm max-w-sm">Grafik pergerakan bulanan hanya dapat ditampilkan untuk satu tahun anggaran spesifik. Silakan ubah filter tahun di menu.</p>
                 </div>
               ) : (
                 <>
-                  <h3 className="font-bold text-[#002B5B] uppercase text-sm tracking-wider mb-6 border-b pb-2 flex items-center gap-2">
-                    <TrendingUp size={16} className="text-[#005FAC]"/> Grafik Realisasi Bulanan TA {activeYear}
+                  <h3 className="font-bold text-[#002B5B] uppercase text-xs md:text-sm tracking-wider mb-4 md:mb-6 border-b pb-2 flex items-center gap-2">
+                    <TrendingUp size={16} className="text-[#005FAC]"/> Grafik Realisasi TA {activeYear}
                   </h3>
-                  {/* Perbaikan: Mengganti h-[400px] dengan class kanonikal h-100 */}
-                  <div className="h-100">
+                  <div className="h-64 md:h-100 -ml-4 md:ml-0">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartDataTren} margin={{top: 10, right: 30, left: 20, bottom: 5}}>
+                      <LineChart data={chartDataTren} margin={{top: 10, right: 10, left: -10, bottom: 5}}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                        <XAxis dataKey="bulan" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                        <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} tickFormatter={(val) => `Rp${val/1000000}JT`} />
+                        <XAxis dataKey="bulan" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} />
+                        <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} tickFormatter={(val) => `${val/1000000}JT`} />
                         <RechartsTooltip formatter={(value) => formatRupiah(value as number)} />
-                        <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }}/>
+                        <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '10px' }}/>
                         {uniquePrograms.map((prog, index) => (
-                          <Line key={prog as string} type="monotone" dataKey={prog as string} stroke={COLORS[index % COLORS.length]} strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                          <Line key={prog as string} type="monotone" dataKey={prog as string} stroke={COLORS[index % COLORS.length]} strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1 }} activeDot={{ r: 5 }} />
                         ))}
                       </LineChart>
                     </ResponsiveContainer>
