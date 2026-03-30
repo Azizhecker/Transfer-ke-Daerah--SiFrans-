@@ -2,11 +2,12 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
 import { NextResponse } from 'next/server';
-import credentials from '../../../../google-credentials.json';
+// Tambahkan dua modul bawaan Node.js ini
+import fs from 'fs';
+import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
-// Menambahkan Interface agar TypeScript tidak protes soal 'any'
 interface SheetRowData {
   wilayah: string;
   jenisBelanja: string;
@@ -19,6 +20,18 @@ interface SheetRowData {
 
 export async function GET() {
   try {
+    // --- LOGIKA PINTAR UNTUK VERCEL & LOKAL (Bebas Error ESLint) ---
+    let credentials;
+    if (process.env.GOOGLE_CREDENTIALS) {
+      // Jika di Vercel, baca dari Environment Variable
+      credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+    } else {
+      // Jika di komputer lokal, baca file menggunakan File System (fs)
+      const filePath = path.join(process.cwd(), 'google-credentials.json');
+      const fileContents = fs.readFileSync(filePath, 'utf8');
+      credentials = JSON.parse(fileContents);
+    }
+
     const serviceAccountAuth = new JWT({
       email: credentials.client_email,
       key: credentials.private_key,
@@ -30,7 +43,6 @@ export async function GET() {
     await doc.loadInfo();
 
     const sheetNames = ['GRAND TOTAL', 'KAB ACEH UTARA', 'KAB BIREUN', 'LHOKSEUMAWE'];
-    // Perbaikan ESLint: Pakai const dan gunakan interface SheetRowData
     const allData: SheetRowData[] = [];
 
     const cleanNumber = (val: string | undefined | null) => {
