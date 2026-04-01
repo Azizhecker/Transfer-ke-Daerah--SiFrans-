@@ -23,8 +23,20 @@ interface SheetRow {
 }
 
 const KEMENKEU_BLUE = "#005FAC";
-const KEMENKEU_GOLD = "#FFD700";
-const COLORS = [KEMENKEU_BLUE, KEMENKEU_GOLD, '#ced4da', '#8ecae6', '#caf0f8', '#f8edeb', '#ecf39e', '#03045e'];
+// Sedikit menggelapkan warna emas Kemenkeu agar teks putih/background putih lebih kontras
+const KEMENKEU_GOLD = "#F59E0B"; 
+
+// PERBAIKAN WARNA: Menggunakan warna-warna yang tegas, solid, dan kontras tinggi
+const COLORS = [
+  KEMENKEU_BLUE, 
+  KEMENKEU_GOLD, 
+  '#10B981', // Emerald Green (Hijau Tegas)
+  '#EF4444', // Red (Merah Tegas)
+  '#8B5CF6', // Purple (Ungu)
+  '#06B6D4', // Cyan (Biru Muda Terang)
+  '#F97316', // Orange (Oranye)
+  '#1E293B'  // Dark Slate (Biru Dongker Sangat Gelap)
+];
 
 const BULAN_LIST = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 
@@ -38,7 +50,6 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // STATE BARU: Untuk Filter Perbandingan YoY (Year over Year)
   const [yoyMetric, setYoyMetric] = useState("keduanya");
   const [selectedJenisBelanjaFilter, setSelectedJenisBelanjaFilter] = useState("");
 
@@ -82,7 +93,6 @@ export default function Dashboard() {
     });
   }, [rawData, activeRegion, activeYear]);
 
-  // Data Mentah Regional Khusus untuk Tren Lintas Tahun
   const regionalRawData = useMemo(() => {
     return rawData.filter(d => d.wilayah.toUpperCase() === activeRegion.toUpperCase());
   }, [rawData, activeRegion]);
@@ -102,7 +112,6 @@ export default function Dashboard() {
     return Array.from(map.values()).sort((a, b) => b.anggaran - a.anggaran);
   }, [filteredData]);
 
-  // DATA UPDATE: Menyimpan Anggaran & Realisasi untuk Grafik YoY di Tab 1
   const chartDataYearly = useMemo(() => {
     const map = new Map();
     filteredData.forEach(item => {
@@ -137,7 +146,6 @@ export default function Dashboard() {
     return arr;
   }, [filteredData, programToFilter, activeYear]);
 
-  // FITUR BARU: Data untuk YoY Khusus per Jenis Belanja (Tab 2)
   const uniqueJenisBelanja = useMemo(() => {
     return Array.from(new Set(regionalRawData.map(d => d.jenisBelanja))).sort();
   }, [regionalRawData]);
@@ -357,7 +365,6 @@ export default function Dashboard() {
           {/* TAB 1: PROGRAM TKD */}
           {activeTab === "program" && (
             <div className="space-y-6">
-              {/* FITUR 1: Grafik YoY Pagu & Realisasi */}
               {activeYear === "Semua Tahun" && (
                 <div className="bg-white p-4 md:p-6 rounded border border-slate-200 shadow-sm overflow-hidden">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 border-b pb-2 gap-3">
@@ -398,13 +405,18 @@ export default function Dashboard() {
                   <div className="h-56 md:h-72">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={chartDataProgram} innerRadius="60%" outerRadius="90%" paddingAngle={2} dataKey="anggaran">
+                        <Pie data={chartDataProgram} innerRadius="55%" outerRadius="90%" paddingAngle={2} dataKey="anggaran">
                           {chartDataProgram.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
                         <RechartsTooltip formatter={(value) => formatRupiah(value as number)} />
-                        <Legend verticalAlign="bottom" wrapperStyle={{ fontSize: '10px' }}/>
+                        {/* PERBAIKAN: Format teks legend di sini agar super tebal dan gelap */}
+                        <Legend 
+                          verticalAlign="bottom" 
+                          formatter={(value) => <span style={{ color: '#0F172A', fontWeight: 700 }}>{value}</span>}
+                          wrapperStyle={{ fontSize: '12px', paddingTop: '15px' }}
+                        />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
@@ -446,7 +458,6 @@ export default function Dashboard() {
           {/* TAB 2: JENIS BELANJA */}
           {activeTab === "belanja" && (
             <div className="space-y-6">
-              {/* FITUR 2: Perbandingan YoY Khusus per Jenis Belanja (Aktif saat Semua Tahun) */}
               {activeYear === "Semua Tahun" && chartDataYoYJenisBelanja.length > 0 && (
                 <div className="bg-white p-4 md:p-6 rounded border border-slate-200 shadow-sm overflow-hidden">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 border-b pb-2 gap-3">
@@ -472,14 +483,13 @@ export default function Dashboard() {
                         <RechartsTooltip formatter={(value) => formatRupiah(value as number)} cursor={{fill: '#f8fafc'}} />
                         <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
                         <Bar name="Pagu Anggaran" dataKey="anggaran" fill="#94a3b8" radius={[2, 2, 0, 0]} maxBarSize={40} />
-                        <Bar name="Realisasi" dataKey="realisasi" fill="#FFD700" radius={[2, 2, 0, 0]} maxBarSize={40} />
+                        <Bar name="Realisasi" dataKey="realisasi" fill="#F59E0B" radius={[2, 2, 0, 0]} maxBarSize={40} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
               )}
 
-              {/* Tabel Jenis Belanja Utama */}
               <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden w-full">
                 <div className="p-4 md:p-5 border-b border-slate-200 bg-[#F8FAFC] flex flex-col gap-3">
                   <h3 className="font-bold text-[#002B5B] uppercase text-xs md:text-sm tracking-wider flex items-center gap-2">
